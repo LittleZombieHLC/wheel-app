@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>轉盤選擇器</title>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 30px; }
+        #wheelCanvas { border: 2px solid #444; border-radius: 50%; max-width: 90%; height: auto; }
+        #pointer {
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 40px solid red;
+            margin: 20px auto;
+        }
+        input { padding: 8px; font-size: 16px; }
+        button { padding: 10px 15px; font-size: 16px; margin-left: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>轉盤選擇器</h2>
+
+    <div id="pointer"></div>
+    <canvas id="wheelCanvas" width="400" height="400"></canvas>
+
+    <div style="margin-top:20px;">
+        <input id="optionInput" placeholder="輸入選項文字">
+        <button onclick="addOption()">加入選項</button>
+    </div>
+    <button style="margin-top:20px;" onclick="spin()">開始旋轉</button>
+
+<script>
+    let options = ["選項1", "選項2", "選項3"];
+    let startAngle = 0;
+    let spinning = false;
+
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function drawWheel() {
+        const arc = Math.PI * 2 / options.length;
+        ctx.clearRect(0, 0, 400, 400);
+
+        for (let i = 0; i < options.length; i++) {
+            let angle = startAngle + i * arc;
+            ctx.beginPath();
+            ctx.fillStyle = i % 2 == 0 ? "#ffd966" : "#f4b183";
+            ctx.moveTo(200, 200);
+            ctx.arc(200, 200, 180, angle, angle + arc);
+            ctx.fill();
+
+            ctx.save();
+            ctx.translate(200, 200);
+            ctx.rotate(angle + arc / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "#000";
+            ctx.font = "18px Arial";
+            ctx.fillText(options[i], 160, 10);
+            ctx.restore();
+        }
+    }
+
+    function addOption() {
+        let val = document.getElementById("optionInput").value.trim();
+        if (val) {
+            options.push(val);
+            document.getElementById("optionInput").value = "";
+            drawWheel();
+        }
+    }
+
+    function spin() {
+        if (spinning || options.length === 0) return;
+        spinning = true;
+
+        let spinTime = 2000;
+        let start = performance.now();
+        let totalRotate = Math.random() * 2000 + 2000;
+
+        function animate(now) {
+            let progress = (now - start) / spinTime;
+            if (progress < 1) {
+                let easeOut = 1 - Math.pow(1 - progress, 3);
+                startAngle = easeOut * totalRotate / 180 * Math.PI;
+                drawWheel();
+                requestAnimationFrame(animate);
+            } else {
+                spinning = false;
+                startAngle = totalRotate / 180 * Math.PI;
+                drawWheel();
+                let arc = Math.PI * 2 / options.length;
+                let index = Math.floor(((Math.PI * 1.5 - startAngle) % (Math.PI * 2) + Math.PI * 2) / arc);
+                alert("選到：" + options[index]);
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+
+    drawWheel();
+</script>
+</body>
+</html>
